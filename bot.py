@@ -56,6 +56,18 @@ if __name__ == "__main__":
                          '''
     cur.execute(create_table_query)
     conn.commit()
+
+    create_table_query = '''
+                         CREATE TABLE IF NOT EXISTS Weight (
+                            id INTEGER AUTO_INCREMENT PRIMARY KEY,
+                            guild TEXT NOT NULL,
+                            name TEXT NOT NULL,
+                            timez datetime,
+                            weight REAL
+                         );
+                         '''
+    cur.execute(create_table_query)
+    conn.commit()
     
     t = open('token.txt', 'r')
     token = t.read().rstrip()
@@ -143,13 +155,43 @@ if __name__ == "__main__":
                     else:
                         await message.channel.send('{} 디데이가 아직 등록되지 않았습니다.'.format(d_name))
                         await message.channel.send('!디데이 추가 (이름) (YYYY-MM-DD) ?(HH:MM:SS) 로 등록해주세요.')
+
+
+        if message.content.startswith('!몸무게'):
+            query = message.content[5:]
+            guild = message.guild.id
+            name = str(message.author)
+
+            if query == '출력':
+                find_date_query = 'SELECT timez, weight from Weight where guild = ? and name = ?'
+                cur.execute(find_date_query, (guild, name))
+                result = cur.fetchall()
+                result.sort(key = lambda x: x[0])
+                await message.channel.send('{}의 몸무게 기록'.format(message.author.name))
+                for row in result:
+                    await message.channel.send('{}\t{}'.format(row[0].strftime('%Y-%m-%d %H:%M:%S'), row[1]))
             
+            else:
+                weight = float(query)
+                if weight > 0:
+                    insert_date_query = 'insert into Weight(guild, name, timez, weight) VALUES (?, ?, ?, ?)'
+                    
+                    KST = datetime.timezone(datetime.timedelta(hours=9))
+                    utc_now = datetime.datetime.utcnow()
+                    kr_now = utc.localize(utc_now).astimezone(KST)
+                    
+                    cur.execute(insert_date_query, (guild, name, kr_now, weight))
+                    conn.commit()
+                    await message.channel.send('{}의 몸무게 {}가 기록되었습니다.'.format(message.author.name, weight))
 
 
         if message.content.startswith('!help') or message.content.startswith('!도움'):
+            embed = discord.Embed(title = "Seretary Bot")
             embed.add_field(name = '!디데이 추가 ... YYYY-MM-DD (HH-MM-SS)', value = "디데이 추가", inline = False)
             embed.add_field(name = '!디데이 삭제 ...', value = "디데이 삭제", inline = False)
             embed.add_field(name = '!디데이 ... or !...', value = "디데이 확인", inline = False)
+            embed.add_field(name = '!몸무게 ...', value = "몸무게 기록", inline = False)
+            embed.add_field(name = '!몸무게 출력', value = "몸무게 기록 출력", inline = False)
             await message.channel.send(embed = embed)
                 
     client.run(token)
