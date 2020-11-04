@@ -168,9 +168,13 @@ if __name__ == "__main__":
                 result = cur.fetchall()
                 result.sort(key = lambda x: x[0])
                 await message.channel.send('{}의 몸무게 기록'.format(message.author.name))
+                resultString = '```\n'
                 for row in result:
-                    await message.channel.send('{}\t{}'.format(row[0].strftime('%Y-%m-%d %H:%M:%S'), row[1]))
-            
+                    # await message.channel.send('{}\t{}'.format(row[0].strftime('%Y-%m-%d %H:%M:%S'), row[1]))
+                    resultString += '{}\t{}\n'.format(row[0].strftime('%Y-%m-%d %H:%M:%S'), row[1])
+                resultString += '```'
+                await message.channel.send(resultString)
+
             else:
                 weight = float(query)
                 if weight > 0:
