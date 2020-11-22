@@ -5,6 +5,7 @@ import datetime
 from pytz import timezone, utc
 from discord.ext import commands
 import sqlite3
+import random
 
 
 def calc_d_day(doom):
@@ -188,14 +189,28 @@ if __name__ == "__main__":
                     conn.commit()
                     await message.channel.send('{}의 몸무게 {}가 기록되었습니다.'.format(message.author.name, weight))
 
-
+        if message.content.startswith('!랜덤'):
+            query = message.content[4:]
+            ranges = query.split(' ')
+            res = random.randint(int(ranges[0]), int(ranges[1]))
+            await message.channel.send(res)
+        
+        if message.content.startswith('!선택'):
+            query = message.content[4:]
+            candi = query.split(' ')
+            if len(candi) > 0:
+                res = candi[random.randint(0, len(candi) - 1)]
+                await message.channel.send(res)
+        
         if message.content.startswith('!help') or message.content.startswith('!도움'):
             embed = discord.Embed(title = "Seretary Bot")
-            embed.add_field(name = '!디데이 추가 ... YYYY-MM-DD (HH-MM-SS)', value = "디데이 추가", inline = False)
+            embed.add_field(name = '!디데이 추가 ... YYYY-MM-DD (HH:MM:SS)', value = "디데이 추가", inline = False)
             embed.add_field(name = '!디데이 삭제 ...', value = "디데이 삭제", inline = False)
             embed.add_field(name = '!디데이 ... or !...', value = "디데이 확인", inline = False)
             embed.add_field(name = '!몸무게 ...', value = "몸무게 기록", inline = False)
             embed.add_field(name = '!몸무게 출력', value = "몸무게 기록 출력", inline = False)
+            embed.add_field(name = '!랜덤 a b', value = "a, b 사이 정수 랜덤(inclusive)", inline = False)
+            embed.add_field(name = '!선택 a b c d ...', value = "a b c d ... 중 하나 선택", inline = False)
             await message.channel.send(embed = embed)
                 
     client.run(token)
